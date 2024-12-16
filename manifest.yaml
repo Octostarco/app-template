@@ -1,0 +1,44 @@
+name: My App
+icon: fa-square
+description: Short description of the app
+alias: my-app
+image: octostar/app.my-app
+
+storage_limit: 5 Gi
+memory_limit: 2 Gi
+
+secrets:
+  MY_API_KEY:
+    required: true
+    default: 123
+    description: The API key required to do really cool stuff
+
+filters:
+  is_file:
+    type: semantically_bound
+    concepts:
+      - os_file
+
+transforms:
+  open_iframe:
+    description: opens the streamlit app
+    type: iframe
+    title: '{{ app.folder.os_item_name }}'
+    icon: fa-square
+
+services:
+  open_my_app:
+    order: 75
+    role: context_menu
+    group: open
+    label: Open My App
+    icon: fa-square
+    description: Opens the streamlit app passing the file as context
+    show_progress: false
+    accepts:
+      - is_file
+    transforms:
+      - open_iframe
+
+
+

@@ -1,0 +1,95 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    tags:
+      - '*'
+
+env:
+  IMAGE_NAME: octostar/app.my-app
+  CACHE_NAME: octostar/cache:app.my-app
+
+jobs:
+
+  docker-build:
+    name: docker-build
+    runs-on: ${{ matrix.runner_platform.runner }}
+    strategy:
+      matrix:
+        runner_platform: [ { runner: linux_150gb_runner, platform: linux/amd64, architecture: amd64 }, { runner: github_linux_arm64, platform: linux/arm64, architecture: arm64 } ]
+
+    steps:
+      - name: "Checkout ${{ github.ref }} ( ${{ github.sha }} )"
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker Image
+        id: docker_build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: ${{ matrix.runner_platform.platform }}
+          cache-from: type=registry,ref=${{ env.CACHE_NAME }}-${{ matrix.runner_platform.architecture }}
+          cache-to: type=registry,ref=${{ env.CACHE_NAME }}-${{ matrix.runner_platform.architecture }}
+          push: true
+          outputs: type=image,name=${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
+
+
+      - name: Export digest
+        run: |
+          mkdir -p /tmp/digests/${{ matrix.runner_platform.architecture }}/
+          digest="${{ steps.docker_build.outputs.digest }}"
+          touch "/tmp/digests/${{ matrix.runner_platform.architecture }}/${digest#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ matrix.runner_platform.architecture }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge_docker_images:
+    needs: [ docker-build ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digests-*
+          merge-multiple: true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Create manifest list for ${{ env.IMAGE_NAME }} and push
+        working-directory: /tmp/digests
+        run: |
+          digest_amd64=$(ls amd64)
+          digest_arm64=$(ls arm64)
+          docker buildx imagetools create \
+          --tag ${{ env.IMAGE_NAME }}:latest \
+          --tag ${{ env.IMAGE_NAME }}:${{ github.ref_name }} \
+          ${{ env.IMAGE_NAME }}@sha256:${digest_amd64} \
+          ${{ env.IMAGE_NAME }}@sha256:${digest_arm64}
+
+      - name: Display Docker Image Tag
+        run: "echo Docker Image Tag: ${{ env.IMAGE_NAME }}:${{ github.ref_name }}"
