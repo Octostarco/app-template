@@ -4,8 +4,8 @@ description: Short description of the app
 alias: my-app
 image: octostar/app.my-app
 
-storage_limit: 5 Gi
-memory_limit: 2 Gi
+storage_limit: 5Gi
+memory_limit: 8Gi
 
 secrets:
   MY_API_KEY:

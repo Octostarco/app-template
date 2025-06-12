@@ -1,0 +1,15 @@
+[theme]
+primaryColor="#0C66E4"
+backgroundColor="#FFFFFF"
+secondaryBackgroundColor="#F7F8F9"
+textColor="#091E42"
+font="sans serif"
+
+[browser]
+gatherUsageStats = false
+
+[server]
+fileWatcherType = "none"
+
+[ui]
+hideTopBar = true

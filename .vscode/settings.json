@@ -1,0 +1,12 @@
+{
+    "black-formatter.importStrategy": "fromEnvironment",
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.fixAll": "always",
+            "source.fixAll.pylance": "always",
+            "source.unusedImports": "always"
+        }
+    }
+}
