@@ -1,14 +1,12 @@
 {
     "version": "0.2.0",
     "configurations": [
-    
-    
-    
         {
             "name": "Run Streamlit (localdev.py)",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/localdev.py",
+            "args": ["streamlit"],
             "console": "integratedTerminal",
             "justMyCode": false
         }
