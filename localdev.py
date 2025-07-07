@@ -1,6 +1,5 @@
 import os
 import sys
-import importlib
 
 VALID_MODES = ["streamlit"]
 
@@ -12,7 +11,7 @@ def runcommand(cmd):
 if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else None
     if mode not in VALID_MODES:
-        print("Usage: python localdev.py [fastapi|streamlit]")
+        print("Usage: python localdev.py [streamlit]")
         sys.exit()
 
     runcommand("pip install python-dotenv")
@@ -32,14 +31,14 @@ if __name__ == "__main__":
     match answer:
         case "y":
             runcommand("pip uninstall -y octostar-python-client")
-            runcommand("pip uninstall -y streamlit-octostar-research")
+            runcommand("pip uninstall -y octostar-streamlit")
             runcommand("pip uninstall -y streamlit-octostar-utils")
             runcommand("pip cache purge")
             download_endpoint = os.environ["OS_API_ENDPOINT"]
             runcommand(
                 f"pip install {download_endpoint}/api/octostar/meta/octostar-python-client.tar.gz"
             )
-            runcommand("pip install streamlit-octostar-research")
+            runcommand("pip install octostar-streamlit")
             runcommand("pip install streamlit-octostar-utils")
         case _:
             pass
@@ -56,7 +55,7 @@ if __name__ == "__main__":
                 main_script_path="src/main.py",
                 is_hello=False,
                 args=[
-                    "--server.port=8080",
+                    "--server.port=8501",
                     "--server.address=0.0.0.0",
                     "--server.enableCORS=true",
                     "--browser.gatherUsageStats=false",
