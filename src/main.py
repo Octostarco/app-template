@@ -27,7 +27,6 @@ from octostar_streamlit.desktop import (
 )
 from octostar_streamlit.extras import create_link_chart
 from octostar.utils.ontology import query_ontology
-from streamlit_octostar_utils.
 
 
 st.header("This is a streamlit app")
@@ -44,6 +43,13 @@ def get_state(key: str):
     if "state" in st.session_state and key in st.session_state["state"]:
         return st.session_state["state"][key]
     return None
+
+
+@impersonating_running_user()
+@dev_mode(os.environ.get("OS_DEV_MODE"))
+def initialize(client):
+    # Any initialization of the session state can go here
+    st.session_state["initialized"] = True
 
 
 @impersonating_running_user()
@@ -189,3 +195,9 @@ def loop(client):
 
     else:
         st.write("No open workspaces found")
+
+
+if not st.session_state.get("initialized"):
+    initialize()
+if st.session_state.get("initialized"):
+    loop()
